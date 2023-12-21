@@ -1,24 +1,45 @@
 package ap.mobile.beenavigation.lib;
 
+import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import ap.mobile.beenavigation.MapCDM;
 import ap.mobile.beenavigation.base.Graph;
 import ap.mobile.beenavigation.base.Graph.GraphPoint;
 
 public class BeeColony {
 
-  private final Graph g;
+  private Graph g;
+  private GraphPoint start;
+  private GraphPoint end;
+  private Bee bee;
 
-  public BeeColony(Graph g) {
+
+  public BeeColony(Graph g, GraphPoint start, GraphPoint end) {
     this.g = g;
+    this.start = g.getPoint(start.getId());
+    this.end = g.getPoint(end.getId());
   }
 
   public void init(int numBee) {
+    Bee bee = new Bee(Bee.Type.SCOUT);
+    bee.scout(this.start, this.end);
+    this.bee = bee;
+  }
 
+  public List<LatLng> getPath() {
+    List<LatLng> path = new ArrayList<>();
+    for(Graph.GraphPoint point: this.bee.food.path) {
+      path.add(new LatLng(point.getLat(), point.getLng()));
+    }
+    return path;
   }
 
   private static class Bee {
@@ -62,6 +83,8 @@ public class BeeColony {
           current = nextPoint;
         }
       }
+      if (current == end)
+        Log.e("END", "END");
       return this;
     }
     private List<GraphPoint> getNextAvailablePoints(GraphPoint point) {

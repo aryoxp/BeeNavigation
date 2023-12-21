@@ -64,6 +64,7 @@ public class MapCDM implements OnMapReadyCallback {
   private final Context context;
 
   private static boolean showCurrentLocation = false;
+  private static LatLng currentLocation;
 
   // Map Utilities
 
@@ -122,6 +123,7 @@ public class MapCDM implements OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(this);
         if(MapCDM.gMap == null) return;
         MapCDM.gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+        MapCDM.currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
       }
     };
     fusedLocationClient.requestLocationUpdates(locationRequest,
@@ -295,6 +297,10 @@ public class MapCDM implements OnMapReadyCallback {
         .position(position)
         .draggable(true);
     return map.addMarker(markerOptions);
+  }
+
+  public static LatLng getCurrentLocation() {
+    return MapCDM.currentLocation;
   }
 
 

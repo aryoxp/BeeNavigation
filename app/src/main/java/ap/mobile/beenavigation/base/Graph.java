@@ -58,6 +58,10 @@ public class Graph {
     }
   }
 
+  public GraphPoint getPoint(int id) {
+    return this.points.get(id);
+  }
+
   public static class GraphPoint extends Point {
 
     Set<GraphPoint> nextPoints = new HashSet<>();

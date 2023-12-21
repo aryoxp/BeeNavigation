@@ -23,12 +23,12 @@
 <!--        android:iconTint="@color/colorPrimaryLight"-->
 <!--        android:icon="@drawable/ic_directions_bus_black_24dp"-->
 <!--        android:title="Recalculate Dijkstra"/>-->
-<!--    <item-->
-<!--        android:id="@+id/action_recalculate_dp"-->
-<!--        android:orderInCategory="100"-->
-<!--        app:showAsAction="always"-->
-<!--        android:icon="@drawable/ic_directions_bus_white_24dp"-->
-<!--        android:title="Recalculate DouglasPeucker"/>-->
+    <item
+        android:id="@+id/action_test"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_directions_bus_white_24dp"
+        android:title="Recalculate"/>
     <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_action_settings"

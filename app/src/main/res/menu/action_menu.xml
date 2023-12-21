@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <item-->
+<!--        android:id="@+id/action_network"-->
+<!--        android:orderInCategory="100"-->
+<!--        app:showAsAction="always"-->
+<!--        android:icon="@drawable/ic_fas_bus"-->
+<!--        android:iconTint="@color/colorPrimaryDark"-->
+<!--        android:title="Run Test"/>-->
+<!--    <item-->
+<!--        android:id="@+id/action_test_sim"-->
+<!--        android:orderInCategory="100"-->
+<!--        app:showAsAction="always"-->
+<!--        android:icon="@drawable/ic_fas_tasks"-->
+<!--        android:iconTint="@color/common_google_signin_btn_text_dark"-->
+<!--        android:title="Run Test"/>-->
+<!--    <item-->
+<!--        android:id="@+id/action_recalculate"-->
+<!--        android:orderInCategory="100"-->
+<!--        app:showAsAction="always"-->
+<!--        android:iconTint="@color/colorPrimaryLight"-->
+<!--        android:icon="@drawable/ic_directions_bus_black_24dp"-->
+<!--        android:title="Recalculate Dijkstra"/>-->
+<!--    <item-->
+<!--        android:id="@+id/action_recalculate_dp"-->
+<!--        android:orderInCategory="100"-->
+<!--        app:showAsAction="always"-->
+<!--        android:icon="@drawable/ic_directions_bus_white_24dp"-->
+<!--        android:title="Recalculate DouglasPeucker"/>-->
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ic_action_settings"
+        android:iconTint="@color/colorAccent"
+        app:showAsAction="ifRoom|withText"
+        android:title=" Settings">
+    </item>
+
+</menu>

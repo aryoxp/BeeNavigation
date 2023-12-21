@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Malang Public Transit</string>
+    <string name="title_activity_maps">Public Transit</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="default_api_path">http://175.45.187.243/routing</string>
+</resources>

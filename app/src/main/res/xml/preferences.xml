@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Application Settings"
+        >
+        <EditTextPreference
+            android:title="Walking Distance to Stops"
+            android:key="pref_walkingDistance"
+            android:defaultValue="600"
+            android:summary="Walking distance to stops" />
+
+        <EditTextPreference
+            android:title="Transportation Cost"
+            android:key="pref_cost"
+            android:defaultValue="4000"
+            android:summary="Cost for line mode" />
+
+        <CheckBoxPreference
+            android:title="Route Finding Priority"
+            android:key="pref_priority"
+            android:summary="Price over Distance"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:title="Use Simplification"
+            android:key="pref_simplify"
+            android:summary="Use Douglas-Peucker simplification"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:title="Simplification Distance"
+            android:key="pref_simplify_distance"
+            android:summary="Douglas-Peucker simplification width distance (meter)"
+            android:defaultValue="50" />
+
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="System Settings">
+        <EditTextPreference
+            android:title="API Path"
+            android:key="pref_basepath"
+            android:defaultValue="@string/default_api_path"
+            android:summary="Server API base path" />
+        <SwitchPreference
+            android:title="Offline Network Data"
+            android:key="pref_offline"
+            android:summary="Use offline data instead of server"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Updates"
+        >
+        <CheckBoxPreference android:title="Application Updates"
+            android:key="applicationUpdates"
+            android:defaultValue="false"
+            android:summary="This option if selected will allow the application to check for latest versions."
+             />
+    </PreferenceCategory>
+</PreferenceScreen>

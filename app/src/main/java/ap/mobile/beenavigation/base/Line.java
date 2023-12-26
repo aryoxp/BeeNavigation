@@ -84,7 +84,7 @@ public class Line {
       Point p = points.get(i);
       s.path.put(p.getSequence(), p);
       s.points.put(p.id, p);
-      if (i != 0 && (p.isStop() || this.restrictedPoints.contains(p))) {
+      if (i != 0 && (p.isInterchange() || this.restrictedPoints.contains(p))) {
         segments.add(s);
         s = new Segment();
         s.path.put(p.getSequence(), p);
@@ -118,12 +118,14 @@ public class Line {
     this.pathPolyline = MapCDM.drawPolyline(gMap, Line.toLatLngs(this.getPathList()), this.getColor());
   }
 
-  public void drawSegments(GoogleMap gMap) {
+  public List<Polyline> drawSegments(GoogleMap gMap) {
     for(Polyline p: this.segmentPolylines) p.remove();
     for(Segment s: this.getSegments()) {
       List<LatLng> edge = new ArrayList<>(Arrays.asList(s.start().getLatLng(), s.end().getLatLng()));
-      this.segmentPolylines.add(MapCDM.drawPolyline(gMap, edge, this.getColor()));
+      Polyline sp = MapCDM.drawPolyline(gMap, edge, this.getColor());
+      this.segmentPolylines.add(sp);
     }
+    return this.segmentPolylines;
   }
 
   public void drawStops(GoogleMap gMap) {

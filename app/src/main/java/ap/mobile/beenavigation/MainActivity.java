@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -16,11 +18,13 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import ap.mobile.beenavigation.base.Graph;
 import ap.mobile.beenavigation.base.Interchange;
@@ -43,6 +47,8 @@ public class MainActivity extends AppCompatActivity
   private Graph g;
   private Graph.GraphPoint startPoint, endPoint;
   private Polyline cPolyline;
+  private List<Polyline> eLinePolylines = new ArrayList<>();
+  private List<Polyline> sLinePolylines = new ArrayList<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +83,15 @@ public class MainActivity extends AppCompatActivity
       if (this.g == null) return false;
       if (this.startPoint != null && this.endPoint != null) {
         BeeColony beeColony = new BeeColony(this.g, this.startPoint, this.endPoint);
-        beeColony.init(2);
-        if (this.cPolyline != null) this.cPolyline.remove();
-        this.cPolyline = MapCDM.drawPolyline(this.gMap, beeColony.getPath(), Color.RED);
+        Handler h = new Handler(Looper.getMainLooper());
+        Thread t = new Thread(() -> {
+          List<LatLng> path = beeColony.run(10);
+          h.post(() -> {
+            if (this.cPolyline != null) this.cPolyline.remove();
+            this.cPolyline = MapCDM.drawPolyline(this.gMap, path, Color.RED);
+          });
+        });
+        t.start();
       }
       return true;
     }
@@ -105,11 +117,12 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onDataLoaded(HashMap<Integer, Line> lines, ArrayList<Interchange> interchanges) {
+    
     // g.draw(lines);
-//    for(Line line: lines.values()) {
-//      line.drawSegments(this.gMap);
-//      line.drawStops(this.gMap);
-//    }
+    // for(Line line: lines.values()) {
+    //  line.drawSegments(this.gMap);
+    //  line.drawStops(this.gMap);
+    // }
 
     this.gMap.setOnMapClickListener(latLng -> {
       if (this.startMarker != null) this.startMarker.remove();
@@ -123,9 +136,10 @@ public class MainActivity extends AppCompatActivity
       for(Line line: lines.values()) {
         Point checkStart = line.getNearestPoint(MapCDM.getCurrentLocation());
         Point checkEnd = line.getNearestPoint(latLng);
-        if (checkEnd == null && checkStart == null) continue;
 
-        double checkStartDistance = Helper.calculateDistance(checkEnd.getLatLng(), latLng);
+        if (checkEnd == null || checkStart == null) continue;
+
+        double checkStartDistance = Helper.calculateDistance(checkStart.getLatLng(), MapCDM.getCurrentLocation());
         double checkEndDistance = Helper.calculateDistance(checkEnd.getLatLng(), latLng);
 
         if (endPoint == null || checkEndDistance < endPointDistance) {
@@ -141,23 +155,27 @@ public class MainActivity extends AppCompatActivity
         if (line.hasRestrictedPoints()) {
           line.clearRestrictedPoints();
           line.buildSegments();
-//          line.drawSegments(this.gMap);
         }
       }
       if (this.endPointMarker != null) this.endPointMarker.remove();
       if (this.startPointMarker != null) this.startPointMarker.remove();
-      this.endPointMarker = MapCDM.drawInterchangeMarker(this.gMap, endPoint.getLatLng(), R.drawable.ic_circle);
-      this.startPointMarker = MapCDM.drawInterchangeMarker(this.gMap, startPoint.getLatLng(), R.drawable.ic_circle);
-      this.startPoint = startPoint;
-      this.endPoint = endPoint;
-      endingLine.addRestrictedPoint(endPoint);
-      endingLine.buildSegments();
-      endingLine.drawSegments(this.gMap);
-      startingLine.addRestrictedPoint(startPoint);
-      startingLine.buildSegments();
-      startingLine.drawSegments(this.gMap);
-
-      this.g = new Graph(new ArrayList<>(lines.values()), interchanges, this.gMap);
+      if (endPoint != null) {
+        this.endPointMarker = MapCDM.drawInterchangeMarker(this.gMap, endPoint.getLatLng(), R.drawable.ic_circle);
+        this.startPointMarker = MapCDM.drawInterchangeMarker(this.gMap, startPoint.getLatLng(), R.drawable.ic_circle);
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
+        endingLine.addRestrictedPoint(endPoint);
+        startingLine.addRestrictedPoint(startPoint);
+        endingLine.buildSegments();
+        if (endingLine != startingLine)
+          startingLine.buildSegments();
+        for (Polyline p: this.sLinePolylines) p.remove();
+        for (Polyline p: this.eLinePolylines) p.remove();
+        this.sLinePolylines = startingLine.drawSegments(this.gMap);
+        this.eLinePolylines = endingLine.drawSegments(this.gMap);
+        // Recreate the graph segments, including the starting and ending points
+        this.g = new Graph(new ArrayList<>(lines.values()), interchanges, this.gMap);
+      }
 
     });
   }

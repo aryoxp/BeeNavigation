@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity
           LatLng start = new LatLng(-7.9414785984133935,112.65198200941086);
           LatLng end = new LatLng(-8.023316412726935,112.62254241853952);
           List<Line> lines = new ArrayList<>(this.lines.values());
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 30; i++) {
 //              Graph g = MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), lines, this.interchanges);
               Graph g = MainActivity.buildGraph(start, end, lines, this.interchanges);
 
@@ -235,8 +235,8 @@ public class MainActivity extends AppCompatActivity
                   if (file.exists()) {
                     FileOutputStream fos = new FileOutputStream(file, true);
                     String data = type + ";";
-                    data += "SID" + this.startPoint.getIdLine() + ";" + this.startPoint.getLat() + ";" + this.startPoint.getLng() + ";";
-                    data += "EID" + this.endPoint.getIdLine() + ";" + this.endPoint.getLat() + ";" + this.endPoint.getLng() + ";";
+                    data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
+                    data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
                     data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
                     data += dijkstra.getCost() + ";\n";
                     fos.write(data.getBytes());

@@ -36,5 +36,15 @@
         app:showAsAction="ifRoom|withText"
         android:title=" Settings">
     </item>
+    <item
+        android:id="@+id/action_bee"
+        android:icon="@drawable/ic_bee"
+        android:title="Bee"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_dijkstra"
+        android:icon="@drawable/ic_route_map"
+        android:title="Dijkstra"
+        app:showAsAction="always" />
 
 </menu>

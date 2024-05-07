@@ -24,9 +24,11 @@ public class BeeColony {
 
   private static final int foragerLimit = 5;
   private static final int cycleLimit = 300;
+  private static final int convergenceLimit = 20;
   private static final float percentOnlooker = .5f;
   private static final float percentForager = .5f;
   private static final float percentScout = .2f;
+  private List<GraphPoint> solution;
 
   public BeeColony(Graph g, GraphPoint start, GraphPoint end) {
     this.start = g.getPoint(start.getId());
@@ -34,8 +36,8 @@ public class BeeColony {
   }
 
   public List<LatLng> run(int numBee) {
-    int cycle = 0;
-    double bestFitness = 0;
+    int cycle = 0, convergence = 0;
+    double bestFitness = 0, prevBestFitness = 0;
     Food bestFood = null;
 
     this.init(numBee);
@@ -53,12 +55,16 @@ public class BeeColony {
       // Onlooker bees check their dance
       for(Bee bee: this.colony) {
         if (bee.type == Bee.Type.ONLOOKER) {
-          if (bee.food.fitness >= bestFitness) {
+          if (bee.food.fitness > bestFitness) {
             bestFood = bee.food;
             bestFitness = bee.food.fitness;
           }
         }
       }
+      if (bestFitness == prevBestFitness) convergence++;
+      else convergence = 0;
+      if (convergence == convergenceLimit) break;
+      prevBestFitness = bestFitness;
       // Log.d("CYCLE", cycle + "/" + bestFitness);
       cycle++;
     }
@@ -67,8 +73,13 @@ public class BeeColony {
     List<LatLng> result = new ArrayList<>();
     if (bestFood == null) return result;
     for(GraphPoint p: bestFood.path)
-      result.add(new LatLng(p.getLat(), p.getLng()));
+      result.add(p.getLatLng());
+    this.solution = bestFood.path;
     return result;
+  }
+
+  public List<GraphPoint> getSolution() {
+    return this.solution;
   }
 
   private void init(int numBee) {
@@ -99,7 +110,7 @@ public class BeeColony {
     foragers.sort(Collections.reverseOrder());
     return foragers;
   }
-  private  void look() {
+  private void look() {
     // Onlooker looks for bee with better fitness
     // Roulette wheel picks
     double tFitness = 0;
@@ -111,7 +122,7 @@ public class BeeColony {
     List<Bee> employedBees = new ArrayList<>();
     for(Bee bee: this.colony) {
       if (bee.type == Bee.Type.EMPLOYED) {
-        bee.probability = bee.food.fitness / tFitness;
+        bee.probability = (float) (bee.food.fitness / tFitness);
         employedBees.add(bee);
       }
     }
@@ -133,7 +144,7 @@ public class BeeColony {
       }
     }
   }
-  private  void fastLook(List<Bee> hives) {
+  private void fastLook(List<Bee> hives) {
     for(Bee bee: this.colony) {
       if (bee.type == Bee.Type.ONLOOKER) {
         Bee bestBee = hives.get(0);
@@ -155,7 +166,7 @@ public class BeeColony {
     }
     private Type type;
     private Food food = new Food();
-    private double probability;
+    private float probability;
 
     private Bee(Type type) {
       this.type = type;
@@ -209,16 +220,16 @@ public class BeeColony {
     private GraphPoint getNext(GraphPoint point) {
       List<GraphPoint> nextPoints = new ArrayList<>(point.getNextPoints());
       nextPoints.removeIf(this::avoid);
-      if (nextPoints.size() == 0) return null;
+      if (nextPoints.isEmpty()) return null;
       int index = new Random().nextInt(nextPoints.size());
       return nextPoints.get(index);
     }
     private GraphPoint getLast() {
-      if (this.path.size() == 0) return null;
+      if (this.path.isEmpty()) return null;
       return this.path.get(this.path.size()-1);
     }
     private GraphPoint removeLast() {
-      if (this.path.size() == 0) return null;
+      if (this.path.isEmpty()) return null;
       return this.path.remove(this.path.size()-1);
     }
     private void calculateFitness() {
@@ -226,7 +237,7 @@ public class BeeColony {
     }
     private double calculateFitness(List<GraphPoint> path) {
       GraphPoint prev = null;
-      int cost = 0;
+      double cost = 0;
       for(GraphPoint p: path) {
         if (prev == null) {
           prev = p;
@@ -246,9 +257,9 @@ public class BeeColony {
 
       for(GraphPoint p: this.path) {
         List<GraphPoint> nextPoints = new ArrayList<>(p.getNextPoints());
-        if (nextPoints.size() > 0) candidates.add(p);
+        if (!nextPoints.isEmpty()) candidates.add(p);
       }
-      if(candidates.size() == 0) return false; //cannot mutate
+      if(candidates.isEmpty()) return false; //cannot mutate
 
       // Picks random mutation point as a starting point
       GraphPoint mutatePoint = candidates.get(new Random().nextInt(candidates.size()));
@@ -263,7 +274,7 @@ public class BeeColony {
         GraphPoint nextPoint = null;
         List<GraphPoint> nextPoints = new ArrayList<>(current.getNextPoints());
         nextPoints.removeIf(np -> mutatedPath.contains(np) || mTaboo.contains(np));
-        if (nextPoints.size() > 0) {
+        if (!nextPoints.isEmpty()) {
           int index = new Random().nextInt(nextPoints.size());
           nextPoint = nextPoints.get(index);
         }

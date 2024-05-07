@@ -24,7 +24,7 @@ public class Line {
   protected String name;
   protected Direction direction;
   protected SortedMap<Integer, Point> path = new TreeMap<>();
-  protected HashMap<Integer, Point> points = new HashMap<>();
+  protected HashMap<String, Point> points = new HashMap<>();
   protected List<Segment> segments = new ArrayList<>();
   protected Set<Point> stops = new HashSet<>();
   protected Set<Point> interchanges = new HashSet<>();
@@ -46,7 +46,7 @@ public class Line {
   public String getName() { return this.name; }
   public Direction getDirection() { return this.direction; }
   public SortedMap<Integer, Point> getPath() { return this.path; }
-  public HashMap<Integer, Point> getPoints() { return this.points; }
+  public HashMap<String, Point> getPoints() { return this.points; }
   public List<Point> getPathList() { return new ArrayList<>(path.values()); }
   public List<Segment> getSegments() { return this.segments; }
   public Set<Point> getStops() { return this.stops; }
@@ -78,7 +78,7 @@ public class Line {
 
   public void buildSegments() {
     List<Segment> segments = new ArrayList<>();
-    Segment s = new Segment();
+    Segment s = new Segment(this.id);
     ArrayList<Point> points = new ArrayList<>(this.getPathList());
     for(int i = 0; i < this.path.size(); i++) {
       Point p = points.get(i);
@@ -86,7 +86,7 @@ public class Line {
       s.points.put(p.id, p);
       if (i != 0 && (p.isInterchange() || this.restrictedPoints.contains(p))) {
         segments.add(s);
-        s = new Segment();
+        s = new Segment(this.id);
         s.path.put(p.getSequence(), p);
         s.points.put(p.id, p);
       }
@@ -114,8 +114,9 @@ public class Line {
     return latLngs;
   }
 
-  public void drawPath(GoogleMap gMap) {
+  public Polyline drawPath(GoogleMap gMap) {
     this.pathPolyline = MapCDM.drawPolyline(gMap, Line.toLatLngs(this.getPathList()), this.getColor());
+    return this.pathPolyline;
   }
 
   public List<Polyline> drawSegments(GoogleMap gMap) {
@@ -140,7 +141,13 @@ public class Line {
 
   public static class Segment {
     SortedMap<Integer, Point> path = new TreeMap<>();
-    HashMap<Integer, Point> points = new HashMap<>();
+    HashMap<String, Point> points = new HashMap<>();
+    int lineId;
+
+    public Segment(int id) {
+      this.lineId = id;
+    }
+
     public Point start() {
       return this.path.get(this.path.firstKey());
     }

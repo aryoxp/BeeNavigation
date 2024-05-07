@@ -4,7 +4,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Point {
 
-  protected int id;
+  protected String id;
   protected int idLine;
   protected int sequence;
   protected boolean stop;
@@ -12,7 +12,7 @@ public class Point {
   protected String idInterchange;
 
   public Point() {}
-  public Point(int id, int idLine, int sequence, boolean stop, double lat, double lng, String idInterchange) {
+  public Point(String id, int idLine, int sequence, boolean stop, double lat, double lng, String idInterchange) {
     this.id = id;
     this.idLine = idLine;
     this.sequence = sequence;
@@ -22,7 +22,7 @@ public class Point {
     this.idInterchange = idInterchange;
   }
 
-  public int getId() { return this.id; }
+  public String getId() { return this.id; }
 
   public int getIdLine() {
     return this.idLine;

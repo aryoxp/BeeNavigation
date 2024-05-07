@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import ap.mobile.beenavigation.base.Graph;
 import ap.mobile.beenavigation.base.Interchange;
 import ap.mobile.beenavigation.base.Line;
 import ap.mobile.beenavigation.base.Point;
@@ -94,7 +95,6 @@ public class MapCDM implements OnMapReadyCallback {
         .findFragmentById(R.id.mapView))).getMapAsync(mapCDM);
     return mapCDM;
   }
-
 
   @Override
   public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -207,7 +207,7 @@ public class MapCDM implements OnMapReadyCallback {
         */
         int sequence = Integer.parseInt(pointJson.getString("sequence"));
         Point point = new Point(
-            Integer.parseInt(pointJson.getString("idpoint")),
+            pointJson.getString("idpoint"),
             line.getId(),
             Integer.parseInt(pointJson.getString("sequence")),
             (j == 0 || j == pathJson.length() - 1 || pointJson.getString("stop").equals("1")),
@@ -227,7 +227,7 @@ public class MapCDM implements OnMapReadyCallback {
 
       JSONObject interchangeJson = interchangesJson.getJSONObject(i);
       Interchange interchange = new Interchange(
-          Integer.parseInt(interchangeJson.getString("idinterchange")),
+          "i" + interchangeJson.getString("idinterchange"),
           interchangeJson.getString("name")
       );
       JSONArray pointsJson = interchangeJson.getJSONArray("points");
@@ -235,7 +235,7 @@ public class MapCDM implements OnMapReadyCallback {
         JSONObject pointJson = pointsJson.getJSONObject(j);
         Line line = lines.get(Integer.parseInt(pointJson.getString("idline")));
         if (line != null) {
-          Point p = line.getPoints().get(Integer.parseInt(pointJson.getString("idpoint")));
+          Point p = line.getPoints().get(pointJson.getString("idpoint"));
           if (p != null) interchange.addPoint(p);
         }
       }
@@ -271,6 +271,37 @@ public class MapCDM implements OnMapReadyCallback {
         .width(10f);
   }
 
+  public static List<Polyline> drawSolution(GoogleMap gMap, List<Graph.GraphPoint> solution, Graph g) {
+    List<Polyline> polylines = new ArrayList<>();
+    Graph.GraphPoint prevPoint = null;
+    List<LatLng> segment = new ArrayList<>();
+    for(Graph.GraphPoint p: solution) {
+      if (prevPoint == null) {
+        prevPoint = p;
+        segment = new ArrayList<>();
+        segment.add(p.getLatLng());
+        continue;
+      }
+      if (p.getIdLine() != prevPoint.getIdLine()) {
+        segment.add(p.getLatLng());
+        int idLine = prevPoint.getIdLine();
+        Line line = g.getLine(idLine);
+        int color = line.getColor();
+        polylines.add(MapCDM.drawPolyline(gMap, segment, color));
+        segment = new ArrayList<>();
+      }
+      segment.add(p.getLatLng());
+      prevPoint = p;
+    }
+    if (segment.size() > 1)  {
+      int idLine = prevPoint.getIdLine();
+      Line line = g.getLine(idLine);
+      int color = line.getColor();
+      polylines.add(MapCDM.drawPolyline(gMap, segment, color));
+    }
+    return polylines;
+  }
+
   public static Polyline drawPolyline(GoogleMap map, List<LatLng> line, int color) {
     PolylineOptions polylineOptions = new PolylineOptions()
         .color(color)
@@ -289,14 +320,16 @@ public class MapCDM implements OnMapReadyCallback {
     return map.addMarker(markerOptions);
   }
 
-  public static Marker drawMarker(GoogleMap map, LatLng position, float color, String label, String description) {
+  public static Marker drawMarker(GoogleMap map, LatLng position, float color, String label, String description, String tag) {
     MarkerOptions markerOptions = new MarkerOptions()
         .icon(BitmapDescriptorFactory.defaultMarker(color))
         .title(label)
         .snippet(description)
         .position(position)
         .draggable(true);
-    return map.addMarker(markerOptions);
+    Marker m = map.addMarker(markerOptions);
+    m.setTag(tag);
+    return m;
   }
 
   public static LatLng getCurrentLocation() {

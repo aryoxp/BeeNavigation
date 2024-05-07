@@ -103,6 +103,21 @@ public class Dijkstra {
     return solution;
   }
 
+  public double getCost() {
+    double cost = 0;
+    Point prev = null;
+    for(Point p: this.solution) {
+      if (prev == null) {
+        cost += CDM.cost;
+        prev = p;
+        continue;
+      }
+      if (prev.getIdLine() != p.getIdLine()) cost += CDM.cost;
+      prev = p;
+    }
+    return cost;
+  }
+
   private class Point {
     private final GraphPoint point;
     private final Set<Point> nextPoints = new HashSet<>();

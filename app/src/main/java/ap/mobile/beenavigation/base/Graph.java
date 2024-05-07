@@ -15,19 +15,21 @@ import java.util.List;
 import java.util.Set;
 
 import ap.mobile.beenavigation.MapCDM;
+import ap.mobile.beenavigation.R;
 import ap.mobile.beenavigation.util.CDM;
 import ap.mobile.beenavigation.util.Helper;
 
 public class Graph {
 
-  private final GoogleMap gMap;
+  private GoogleMap gMap;
   private HashMap<Integer, Line> lines = new HashMap<>();
   private HashMap<String, GraphPoint> points = new HashMap<>();
   private List<GraphSegment> segments = new ArrayList<>();
   private List<Polyline> graphPolylines = new ArrayList<>();
+  private GraphPoint startPoint;
+  private GraphPoint endPoint;
 
-  public Graph(@NonNull List<Line> lines, List<Interchange> interchanges, GoogleMap gMap) {
-    this.gMap = gMap;
+  public Graph(@NonNull List<Line> lines, List<Interchange> interchanges) {
     for (Line line: lines) this.lines.put(line.getId(), line);
     // for (Interchange i: interchanges) {
     //   if (i.getPoints().size() == 0) continue;
@@ -87,6 +89,11 @@ public class Graph {
     }
   }
 
+  public Graph(@NonNull List<Line> lines, List<Interchange> interchanges, GoogleMap gMap) {
+    this(lines, interchanges);
+    this.gMap = gMap;
+  }
+
   public List<Polyline> draw(HashMap<Integer, Line> lines) {
     for(Polyline p: this.graphPolylines) p.remove();
     for(GraphPoint p: this.points.values()) {
@@ -122,6 +129,27 @@ public class Graph {
   public Line getLine(int lineId) {
     return this.lines.get(lineId);
   }
+
+  public void setStartEnd(GraphPoint startPoint, GraphPoint endPoint) {
+    this.startPoint = startPoint;
+    this.endPoint = endPoint;
+  }
+
+  public void drawTerminal(GoogleMap gMap) {
+    if (MapStatic.startPointMarker != null) MapStatic.startPointMarker.remove();
+    if (MapStatic.endPointMarker != null) MapStatic.endPointMarker.remove();
+    MapStatic.startPointMarker = MapCDM.drawInterchangeMarker(gMap, this.startPoint.getLatLng(), R.drawable.ic_circle);
+    MapStatic.endPointMarker = MapCDM.drawInterchangeMarker(gMap, this.endPoint.getLatLng(), R.drawable.ic_circle);
+  }
+
+  public GraphPoint getStartPoint() {
+    return this.startPoint;
+  }
+
+  public GraphPoint getEndPoint() {
+    return this.endPoint;
+  }
+
 
   public static class GraphPoint extends Point {
 

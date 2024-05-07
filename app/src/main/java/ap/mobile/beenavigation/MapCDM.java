@@ -55,6 +55,7 @@ import java.util.Objects;
 import ap.mobile.beenavigation.base.Graph;
 import ap.mobile.beenavigation.base.Interchange;
 import ap.mobile.beenavigation.base.Line;
+import ap.mobile.beenavigation.base.MapStatic;
 import ap.mobile.beenavigation.base.Point;
 
 public class MapCDM implements OnMapReadyCallback {
@@ -299,6 +300,10 @@ public class MapCDM implements OnMapReadyCallback {
       int color = line.getColor();
       polylines.add(MapCDM.drawPolyline(gMap, segment, color));
     }
+    if (MapStatic.startTerminalMarker != null) MapStatic.startTerminalMarker.remove();
+    if (MapStatic.endTerminalMarker != null) MapStatic.endTerminalMarker.remove();
+    MapStatic.startTerminalMarker = MapCDM.drawInterchangeMarker(gMap, solution.get(0).getLatLng(), R.drawable.ic_circle);
+    MapStatic.endTerminalMarker = MapCDM.drawInterchangeMarker(gMap, solution.get(solution.size()-1).getLatLng(), R.drawable.ic_circle);
     return polylines;
   }
 

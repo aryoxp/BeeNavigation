@@ -277,13 +277,7 @@ public class MapCDM implements OnMapReadyCallback {
     Graph.GraphPoint prevPoint = null;
     List<LatLng> segment = new ArrayList<>();
     for(Marker m: MapStatic.markedMarkers) m.remove();
-    boolean skip = false;
     for(Graph.GraphPoint p: solution) {
-      if (p.marked) {
-        Marker m = MapCDM.drawInterchangeMarker(gMap, p.getLatLng(), R.drawable.ic_circle_red);
-        MapStatic.markedMarkers.add(m);
-        skip = !skip;
-      }
       if (prevPoint == null) {
         prevPoint = p;
         segment = new ArrayList<>();
@@ -295,7 +289,6 @@ public class MapCDM implements OnMapReadyCallback {
         int idLine = prevPoint.getIdLine();
         Line line = g.getLine(idLine);
         int color = line.getColor();
-        // if (skip) color = Color.parseColor("#000000");
         polylines.add(MapCDM.drawPolyline(gMap, segment, color));
         segment = new ArrayList<>();
       }
@@ -310,7 +303,7 @@ public class MapCDM implements OnMapReadyCallback {
     }
     if (MapStatic.startTerminalMarker != null) MapStatic.startTerminalMarker.remove();
     if (MapStatic.endTerminalMarker != null) MapStatic.endTerminalMarker.remove();
-    if (solution.size() > 0) {
+    if (!solution.isEmpty()) {
       MapStatic.startTerminalMarker = MapCDM.drawInterchangeMarker(gMap, solution.get(0).getLatLng(), R.drawable.ic_circle);
       MapStatic.endTerminalMarker = MapCDM.drawInterchangeMarker(gMap, solution.get(solution.size() - 1).getLatLng(), R.drawable.ic_circle);
     }

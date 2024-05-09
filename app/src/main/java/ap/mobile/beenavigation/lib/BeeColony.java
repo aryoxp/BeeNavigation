@@ -43,6 +43,7 @@ public class BeeColony {
       for (GraphPoint gp: p.point.getNextPoints()) {
         Point np = points.get(gp.getId());
         p.addNext(np);
+        if(gp.getIdLine() == p.getIdLine()) p.addNextOnLine(np);
       }
     this.start = points.get(start.getId());
     this.end = points.get(end.getId());
@@ -55,6 +56,7 @@ public class BeeColony {
     while(cycle < BeeColony.cycleLimit) {
 
       // Employed Bee Phase
+      Log.w("BEE", "EMPLOYED: Cycle: " + cycle + " Food: " + this.foods.size());
       for(Bee bee: colony)
       {
         if (bee.type == Bee.Type.EMPLOYED) {
@@ -64,19 +66,22 @@ public class BeeColony {
       }
 
       // Waggle Dance + Onlooker Bee Phase
-      Food cycleBestFood = this.dance();
+      Log.d("BEE", "ONLOOKER: Cycle: " + cycle);
+      this.dance();
       for(Bee bee: colony) {
         if (bee.type == Bee.Type.ONLOOKER) {
           Food food = roulette((List<Food>) this.foods);
+          if (food == null) continue;
           foods.add(bee.forage(food));
         }
       }
-      cycleBestFood = this.dance();
+      Food cycleBestFood = this.dance();
 
       if (this.bestFood == null || Food.getCost(cycleBestFood.path) < Food.getCost(this.bestFood.path))
         this.bestFood = cycleBestFood;
 
       // Scout Bee Phase
+      Log.d("BEE", "SCOUT: Cycle: " + cycle);
       this.foods.clear();
       for(Bee bee: colony) {
         if (bee.type == Bee.Type.SCOUT) {
@@ -93,11 +98,11 @@ public class BeeColony {
   private Food roulette(List<Food> foods) {
     int total = 0;
     for(Food f: foods) total += f.getNectarSize();
-    int random = new Random().nextInt(total);
+    int random = new Random(seed).nextInt(total);
     int index = 0;
     int sum = 0;
     for(Food f: foods) {
-      if (sum < random) return foods.remove(index);
+      if (sum <= random) return foods.remove(index);
       sum += f.getNectarSize();
       index++;
     }
@@ -137,6 +142,7 @@ public class BeeColony {
       this.foods.add(food);
       colony.add(bee);
     }
+    for (Food f: this.foods) Log.d("BEE", "INIT: Food Size: " + f.path.size());
     for (int i = 0; i < numOnlooker; i++) {
       Bee bee = new Bee(Bee.Type.ONLOOKER);
       colony.add(bee);
@@ -146,6 +152,7 @@ public class BeeColony {
   private static class Point {
     private final GraphPoint point;
     private final Set<Point> nextPoints = new HashSet<>();
+    private Point nextPointOnLine = null;
 
     Point(GraphPoint p) {
       this.point = p;
@@ -156,11 +163,17 @@ public class BeeColony {
     private Set<Point> getNextPoints() {
       return this.nextPoints;
     }
+    private Point getNextPointOnLine() {
+      return this.nextPointOnLine;
+    }
     private String getId() {
       return this.point.getId();
     }
     private int getIdLine() {
       return this.point.getIdLine();
+    }
+    public void addNextOnLine(Point np) {
+      this.nextPointOnLine = np;
     }
   }
 
@@ -211,7 +224,7 @@ public class BeeColony {
       nextPoints.removeIf(np -> this.path.contains(np) || this.taboo.contains(np));
       if (nextPoints.isEmpty()) return null;
       ++seed;
-      Log.d("BEE", String.valueOf(seed));
+//      Log.d("BEE", String.valueOf(seed));
       int index = new Random(seed).nextInt(nextPoints.size());
       return nextPoints.get(index);
     }
@@ -239,16 +252,17 @@ public class BeeColony {
       return cost;
     }
     private static Point getNextOnLine(Point point) {
-      for(Point p: point.getNextPoints())
-        if (p.getIdLine() == point.getIdLine())
-          return p;
-      return null;
+//      for(Point p: point.getNextPoints())
+//        if (p.getIdLine() == point.getIdLine())
+//          return p;
+//      return null;
+      return point.getNextPointOnLine();
     }
 
     public boolean optimize() {
       // determine start point to optimize
       ++seed;
-      Log.d("BEE", String.valueOf(seed));
+//      Log.d("BEE", String.valueOf(seed));
       int startIndex = new Random(seed).nextInt(this.path.size()/3);
       int endIndex = 0;
       Point start = this.path.get(startIndex);
@@ -284,9 +298,14 @@ public class BeeColony {
 
       // build optimized chain
       Point next = Food.getNextOnLine(start);
+//      Log.d("BEE", "Opt: Line ID: " + start.getIdLine());
       while (next != null) {
-        // if (next.getId().equals(end.getId())) break;
+//        Log.d("BEE", "Following: Line ID: " + next.getIdLine());
         if (this.path.contains(next)) break;
+        if (newPath.contains(next)) {
+          Log.d("BEE", "Opt loop detected.");
+          return false; // contains loop
+        }
         newPath.add(next);
         next = Food.getNextOnLine(next);
       }

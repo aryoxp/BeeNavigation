@@ -156,6 +156,8 @@ public class Graph {
     Set<GraphPoint> nextPoints = new HashSet<>();
     Set<GraphPoint> prevPoints = new HashSet<>();
 
+    public boolean marked = false;
+
     public GraphPoint() {}
 
     public GraphPoint(Point p) {

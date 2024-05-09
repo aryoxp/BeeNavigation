@@ -3,6 +3,7 @@ package ap.mobile.beenavigation.base;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,4 +28,5 @@ public class MapStatic {
 
     public static Marker startTerminalMarker;
     public static Marker endTerminalMarker;
+    public static List<Marker> markedMarkers = new ArrayList<>();
 }

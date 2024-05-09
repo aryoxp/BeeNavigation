@@ -88,30 +88,9 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-//    pairs.add(new Pair(-7.9389452744464,112.600382,-7.9719772167498,112.6133345043)); // medium no-transfer
-//    pairs.add(new Pair(-7.9389452744464,112.600382,-7.9563803243522,112.61370982175)); // short no-transfer
-//    pairs.add(new Pair(-7.9615146153135,112.613521,-7.9746534441299,112.64521747828)); // short multiple-transfer
-//    pairs.add(new Pair(-8.0241245688691,112.64144344255,-7.9310603930299,112.652900666)); // long no-transfer
-//    pairs.add(new Pair("SN", -7.9416423435152,112.60931477546,-7.9614039236743,112.62353091502)); // short no-transfer
-//    pairs.add(new Pair("SM", -7.9656745099606,112.61358875215,-7.9523396667593,112.63175210491)); // short multiple-transfer
-//    pairs.add(new Pair("LN", -8.0220704724961,112.62443072884,-7.9325072506729,112.65622511195)); // long no-transfer
-//    pairs.add(new Pair("LM", -8.0162618062117,112.62850865721,-7.9319107836599,112.65483668221)); // long multiple-transfer
-
-//    S: lat/lng: (-7.969336551501829,112.62958120554686) - E: lat/lng: (-7.9868385728634586,112.63291653245687);
-//    SID6;-7.9692040682516;112.62898541987;EID6;-7.9867970698673;112.63272643089;4.2175;0.01798635230672798;5000.0
-//    pairs.add(new Pair("SN",-7.969336551501829,112.62958120554686,-7.9868385728634586,112.63291653245687));
-//    S: lat/lng: (-7.973062334815168,112.62492690235376) - E: lat/lng: (-7.980627685589258,112.63293631374836);
-//    SID15;-7.9737259376614;112.62451090675;EID22;-7.9813667819369;112.63321431101;6.702188;0.011581526106487019;15000.0
-//    pairs.add(new Pair("SM",-7.973062334815168,112.62492690235376,-7.980627685589258,112.63293631374836));
-
-//    S: lat/lng: (-7.9338424589274545,112.60619301348925) - E: lat/lng: (-8.022524273730982,112.6317786052823);
-//    SID6;-7.9350186382036;112.60473489762;EID6;-8.0237277533653;112.6313303411;3.870312;0.0926100681711724;5000.0;
-//    pairs.add(new Pair("LN",-7.9338424589274545,112.60619301348925,-8.022524273730982,112.6317786052823));
-//    S: lat/lng: (-7.936292109147728,112.64922067523003) - E: lat/lng: (-8.0236251672402,112.62026891112328);
-//    SID1;-7.9364076677239;112.64973088168;EID22;-8.0211268855806;112.62159280671;3.763646;0.08926979969322421;15000.0;
-    pairs.add(new Pair("LM",-7.9414785984133935,112.65198200941086,-8.023316412726935,112.62254241853952));
-
-
+    // pairs.add(new Pair("SN",-7.9407324572775915,112.6097097247839,-7.955395359710581,112.61473517864943));
+    // pairs.add(new Pair("LN", -7.931323391709715,112.6036999002099,-8.020481172146864,112.62394990772009 ));
+    // pairs.add(new Pair("LM",-7.9414785984133935,112.65198200941086,-8.023316412726935,112.62254241853952));
     askForPermissions();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       if (Environment.isExternalStorageManager()) {
@@ -135,6 +114,8 @@ public class MainActivity extends AppCompatActivity
     File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv" );
     try {
       file.createNewFile();
+      file = new File(Environment.getExternalStorageDirectory(), "bee-test.csv" );
+      file.createNewFile();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -154,112 +135,119 @@ public class MainActivity extends AppCompatActivity
       return true;
     }
     if (item.getItemId() == R.id.action_bee) {
-      if (this.g == null) return false;
-      if (this.startPoint != null && this.endPoint != null) {
+      pairs.add(new Pair("SM", -7.973144015452409,112.62706462293863,-7.974988466149719,112.63451311737299));
+      // pairs.add(new Pair("LN", -7.931323391709715,112.6036999002099,-8.020481172146864,112.62394990772009 ));
+      // if (this.g == null) return false;
+      // if (this.startPoint != null && this.endPoint != null) {
 
-        // this.g.draw();
-
-        // Bee Colony Algorithm
-        BeeColony beeColony = new BeeColony(this.g, this.startPoint, this.endPoint);
-        Handler h = new Handler(Looper.getMainLooper());
-        Thread t = new Thread(() -> {
-          double timea = System.nanoTime();
-          List<LatLng> path = beeColony.run(10);
-          double timeb = System.nanoTime() - timea;
-          h.post(() -> {
-            Toast.makeText(this, (int) (timeb/1000000) + "ms", Toast.LENGTH_SHORT).show();
-            // this.cPolyline = MapCDM.drawPolyline(this.gMap, path, Color.RED);
-            MapStatic.solutionPolylines = MapCDM.drawSolution(this.gMap, beeColony.getSolution(), this.g);
-          });
-        });
-        for(Polyline polyline: MapStatic.solutionPolylines) polyline.remove();
-        t.start();
-
-        // Ant Colony Algorithm
-        // AntColony antColony = new AntColony(this.g, this.startPoint, this.endPoint, this);
-        // this.ha = new Handler(Looper.getMainLooper());
-        // Thread ta = new Thread(() -> {
-        //   List<LatLng> path = antColony.run(5);
-        //   this.ha.post(() -> {
-        //     if (this.aPolyline != null) this.aPolyline.remove();
-        //     // this.aPolyline = MapCDM.drawPolyline(this.gMap, path, Color.YELLOW);
-        //   });
-        // });
-        // ta.start();
-
-        // Dijkstra
-        // Dijkstra dijkstra = new Dijkstra(this.g, this.startPoint, this.endPoint);
-        // Handler dh = new Handler(Looper.getMainLooper());
-        // Thread dt = new Thread(() -> {
-        //   List<LatLng> path = dijkstra.run(Dijkstra.Priority.COST);
-        //   dh.post(() -> {
-        //     this.solutionPolylines = MapCDM.drawSolution(this.gMap, dijkstra.getSolution(), this.g);
-        //   });
-        // });
-        // for(Polyline polyline: this.solutionPolylines) polyline.remove();
-        // dt.start();
-
-      }
-      return true;
-    }
-    if (item.getItemId() == R.id.action_dijkstra) {
-//      if (this.g == null) return false;
-//      if (this.startPoint != null && this.endPoint != null) {
-
-        // this.g.draw();
-        // Dijkstra
-        try {
-          Pair p = this.pairs.poll();
-          while (p != null) {
-//            MapStatic.startMarker.setPosition(p.getStartPosition());
-//            MapStatic.endMarker.setPosition(p.getEndPosition());
-          LatLng start = new LatLng(-7.9414785984133935,112.65198200941086);
-          LatLng end = new LatLng(-8.023316412726935,112.62254241853952);
+      // this.g.draw();
+      // Bee Colony Algorithm
+      try {
+        Pair p = this.pairs.poll();
+        while (p != null) {
+          LatLng start = p.getStartPosition();
+          LatLng end = p.getEndPosition();
+          if (MapStatic.startPointMarker != null) MapStatic.startPointMarker.remove();
+          if (MapStatic.endPointMarker != null) MapStatic.endPointMarker.remove();
+          MapStatic.startPointMarker = MapCDM.drawInterchangeMarker(this.gMap,start,R.drawable.ic_circle);
+          MapStatic.endPointMarker = MapCDM.drawInterchangeMarker(this.gMap,end,R.drawable.ic_circle);
           List<Line> lines = new ArrayList<>(this.lines.values());
-            for (int i = 0; i < 30; i++) {
-//              Graph g = MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), lines, this.interchanges);
+          for (int i = 0; i < 1; i++) {
+            // Graph g = MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), lines, this.interchanges);
+            Handler h = new Handler(Looper.getMainLooper());
+            String type = p.type;
+            // Thread t = new Thread(() -> {
               Graph g = MainActivity.buildGraph(start, end, lines, this.interchanges);
-
-              Handler dh = new Handler(Looper.getMainLooper());
-              String type = "X";
-//              String type = p.type;
-              Thread dt = new Thread(() -> {
-                Graph.GraphPoint startPoint = g.getStartPoint();
-                Graph.GraphPoint endPoint = g.getEndPoint();
-                Dijkstra dijkstra = new Dijkstra(g, startPoint, endPoint);
-                double timea = System.nanoTime();
-                List<LatLng> path = dijkstra.run(Dijkstra.Priority.COST);
-                double timeb = (System.nanoTime() - timea) / 1000000;
-                try {
-                  File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
-                  if (file.exists()) {
-                    FileOutputStream fos = new FileOutputStream(file, true);
-                    String data = type + ";";
-                    data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
-                    data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
-                    data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
-                    data += dijkstra.getCost() + ";\n";
-                    fos.write(data.getBytes());
-                    fos.close();
-                  }
-                } catch (Exception e) {}
-                dh.post(() -> {
-                  for (Polyline polyline : MapStatic.solutionPolylines) polyline.remove();
-                  List<Graph.GraphPoint> solution = dijkstra.getSolution();
+              Graph.GraphPoint startPoint = g.getStartPoint();
+              Graph.GraphPoint endPoint = g.getEndPoint();
+              BeeColony beeColony = new BeeColony(g, startPoint, endPoint);
+              double timea = System.nanoTime();
+              List<LatLng> path = beeColony.run(10);
+              double timeb = (System.nanoTime() - timea) / 1000000;
+              try {
+                File file = new File(Environment.getExternalStorageDirectory(), "bee-test.csv");
+                if (file.exists()) {
+                  FileOutputStream fos = new FileOutputStream(file, true);
+                  String data = type + ";";
+                  data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
+                  data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
+                  data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
+                  data += beeColony.getCost() + ";\n";
+                  fos.write(data.getBytes());
+                  fos.close();
+                }
+              } catch (Exception e) {}
+              // h.post(() -> {
+                Log.d("BEE", "Thread Finish");
+                // Toast.makeText(this, (int) (timeb / 1000000) + "ms", Toast.LENGTH_SHORT).show();
+                // this.cPolyline = MapCDM.drawPolyline(this.gMap, path, Color.RED);
+                for (Polyline polyline : MapStatic.solutionPolylines) polyline.remove();
+                List<Graph.GraphPoint> solution = beeColony.getSolution();
+                if (solution != null)
                   MapStatic.solutionPolylines = MapCDM.drawSolution(this.gMap, solution, g);
-                });
-
-              });
-
-              dt.start();
-              dt.join();
-            }
-            p = this.pairs.poll();
-          }
-        } catch (Exception e) {}
-//      }
+              // });
+            // });
+            // t.start();
+            // t.join();
+          } // for
+          p = this.pairs.poll();
+        } // while
+      } catch(Exception e) {} // try-catch
       return true;
     }
+//     if (item.getItemId() == R.id.action_dijkstra) {
+//         // this.g.draw();
+//         // Dijkstra
+//         try {
+//           Pair p = this.pairs.poll();
+//           while (p != null) {
+//             LatLng start = p.getStartPosition();
+//             LatLng end = p.getEndPosition();
+//             List<Line> lines = new ArrayList<>(this.lines.values());
+//             for (int i = 0; i < 100; i++) {
+//               // Graph g = MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), lines, this.interchanges);
+//               Graph g = MainActivity.buildGraph(start, end, lines, this.interchanges);
+//
+//               Handler dh = new Handler(Looper.getMainLooper());
+//               // String type = "X";
+//               String type = p.type;
+//               Thread dt = new Thread(() -> {
+//                 Graph.GraphPoint startPoint = g.getStartPoint();
+//                 Graph.GraphPoint endPoint = g.getEndPoint();
+//                 Dijkstra dijkstra = new Dijkstra(g, startPoint, endPoint);
+//                 double timea = System.nanoTime();
+//                 List<LatLng> path = dijkstra.run(Dijkstra.Priority.COST);
+//                 double timeb = (System.nanoTime() - timea) / 1000000;
+//                 try {
+//                   File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
+//                   if (file.exists()) {
+//                     FileOutputStream fos = new FileOutputStream(file, true);
+//                     String data = type + ";";
+//                     data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
+//                     data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
+//                     data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
+//                     data += dijkstra.getCost() + ";\n";
+//                     fos.write(data.getBytes());
+//                     fos.close();
+//                   }
+//                 } catch (Exception e) {}
+//                 dh.post(() -> {
+//                   for (Polyline polyline : MapStatic.solutionPolylines) polyline.remove();
+//                   List<Graph.GraphPoint> solution = dijkstra.getSolution();
+//                   MapStatic.solutionPolylines = MapCDM.drawSolution(this.gMap, solution, g);
+//                 });
+//
+//               });
+//
+//               dt.start();
+//               dt.join();
+//             }
+//             p = this.pairs.poll();
+//           }
+//         } catch (Exception e) {}
+// //      }
+//       return true;
+//     }
 
     return true;
   }
@@ -316,6 +304,8 @@ public class MainActivity extends AppCompatActivity
               new ArrayList<>(this.lines.values()), this.interchanges);
       g.drawTerminal(this.gMap);
       File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
+      // pairs.clear();
+      // pairs.add(new Pair("X", MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition()));
       try {
         if (file.exists()) {
           FileOutputStream fos = new FileOutputStream(file, true);
@@ -436,11 +426,16 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onMarkerDragEnd(@NonNull Marker marker) {
-    if (marker.getTag() == "END") Toast.makeText(MainActivity.this, "End", Toast.LENGTH_SHORT).show();
-    if (marker.getTag() == "START") Toast.makeText(MainActivity.this, "Start", Toast.LENGTH_SHORT).show();
-    MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), new ArrayList<>(this.lines.values()), this.interchanges);
+    // if (marker.getTag() == "END") Toast.makeText(MainActivity.this, "End", Toast.LENGTH_SHORT).show();
+    // if (marker.getTag() == "START") Toast.makeText(MainActivity.this, "Start", Toast.LENGTH_SHORT).show();
+    Graph g = MainActivity.buildGraph(MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition(), new ArrayList<>(this.lines.values()), this.interchanges);
     for(Polyline polyline: MapStatic.solutionPolylines) polyline.remove();
 
+    pairs.clear();
+    pairs.add(new Pair("X", MapStatic.startMarker.getPosition(), MapStatic.endMarker.getPosition()));
+    String startLine = this.lines.get(g.getStartPoint().getIdLine()).getName();
+    String endLine = this.lines.get(g.getEndPoint().getIdLine()).getName();
+    Toast.makeText(this, startLine + "/" + endLine, Toast.LENGTH_SHORT).show();
     File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
     try {
       if (file.exists()) {

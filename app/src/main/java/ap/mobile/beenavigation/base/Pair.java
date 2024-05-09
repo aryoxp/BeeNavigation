@@ -15,10 +15,13 @@ public class Pair {
     this.lt = lt;
     this.lg = lg;
   }
+  public Pair(String type, LatLng start, LatLng end) {
+    this(type, start.latitude, start.longitude, end.latitude, end.longitude);
+  }
   public LatLng getStartPosition() {
     return new LatLng(this.lat, this.lng);
   }
   public LatLng getEndPosition() {
-    return new LatLng(this.lt, this.lng);
+    return new LatLng(this.lt, this.lg);
   }
 }

@@ -123,10 +123,10 @@ public class MainActivity extends AppCompatActivity
       return true;
     }
     if (item.getItemId() == R.id.action_bee) {
-      pairs.add(new Pair("SN", -7.9407324572775915, 112.6097097247839, -7.955395359710581, 112.61473517864943));
+//      pairs.add(new Pair("SN", -7.9407324572775915, 112.6097097247839, -7.955395359710581, 112.61473517864943));
       pairs.add(new Pair("SM", -7.973144015452409, 112.62706462293863, -7.974988466149719, 112.63451311737299));
-      pairs.add(new Pair("LN", -7.931323391709715, 112.6036999002099, -8.020481172146864, 112.62394990772009));
-      pairs.add(new Pair("LM", -7.9414785984133935, 112.65198200941086, -8.023316412726935, 112.62254241853952));
+//      pairs.add(new Pair("LN", -7.931323391709715, 112.6036999002099, -8.020481172146864, 112.62394990772009));
+//      pairs.add(new Pair("LM", -7.9414785984133935, 112.65198200941086, -8.023316412726935, 112.62254241853952));
       // Bee Colony Algorithm
       try {
         Pair p = this.pairs.poll();
@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity
           MapStatic.endPointMarker = MapCDM.drawInterchangeMarker(this.gMap, end, R.drawable.ic_circle);
           List<Line> lines = new ArrayList<>(this.lines.values());
           for (Polyline polyline : MapStatic.solutionPolylines) polyline.remove();
-          for (int i = 0; i < 100; i++) {
+          for (int i = 0; i < 5; i++) {
             String type = p.type;
             // Thread t = new Thread(() -> {
             Graph g = MainActivity.buildGraph(start, end, lines, this.interchanges);

@@ -26,8 +26,9 @@ public class BeeColony {
   private List<Bee> colony = new LinkedList<>();
   private static int seed = 0;
 
-  private static final int cycleLimit = 10;
+  private static final int cycleLimit = 50;
   private static final int forageLimit = 5;
+  private static final int convergence = 25;
   private static final float percentForager = .5f;
   private static final float percentOnlooker = .5f;
   private Food bestFood;
@@ -53,7 +54,9 @@ public class BeeColony {
     seed = 0;
     this.init(numBee);
     int cycle = 0;
-    while(cycle < BeeColony.cycleLimit) {
+    int convergence = 0;
+    double bestCost = Double.MAX_VALUE;
+    while(cycle < BeeColony.cycleLimit && convergence < BeeColony.convergence) {
 
       // Employed Bee Phase
       Log.w("BEE", "EMPLOYED: Cycle: " + cycle + " Food: " + this.foods.size());
@@ -90,6 +93,13 @@ public class BeeColony {
         }
       }
       // Log.d("CYCLE", cycle + "/" + bestFitness);
+
+      if (bestCost > Food.getCost(this.bestFood.path)) {
+        bestCost = Food.getCost(this.bestFood.path);
+        convergence = 0;
+      }
+      else convergence++;
+      Log.d("BEE", "Convergence: " + convergence);
       cycle++;
     }
     return null;
@@ -228,6 +238,15 @@ public class BeeColony {
       int index = new Random(seed).nextInt(nextPoints.size());
       return nextPoints.get(index);
     }
+    private static Point getNextScout(List<Point> path, List<Point> taboo, Point point) {
+      List<Point> nextPoints = new ArrayList<>(point.getNextPoints());
+      nextPoints.removeIf(np -> path.contains(np) || taboo.contains(np));
+      if (nextPoints.isEmpty()) return null;
+      ++seed;
+//      Log.d("BEE", String.valueOf(seed));
+      int index = new Random(seed).nextInt(nextPoints.size());
+      return nextPoints.get(index);
+    }
     private Point backtrack() {
       if (this.path.isEmpty()) return null;
       this.taboo.add(this.path.remove(this.path.size()-1));
@@ -258,11 +277,33 @@ public class BeeColony {
 //      return null;
       return point.getNextPointOnLine();
     }
+    private static List<Point> scout(Point start, Point end, int limit) {
+      List<Point> taboo = new ArrayList<>();
+      List<Point> path = new ArrayList<>();
+      path.add(start);
+      Point current = start;
+      int length = 0;
+      do {
+        if (length >= limit) return null;
+        Point np = getNextScout(path, taboo, current);
+        if (np != null) {
+          path.add(np);
+          current = np;
+        } else { // backtrack
+          if (path.isEmpty()) return null;
+          taboo.add(path.remove(path.size()-1));
+          if (path.isEmpty()) return null;
+          current = path.get(path.size()-1);
+        }
+        length++;
+      } while (current != null && current != end);
+      return path;
+    }
 
     public boolean optimize() {
       // determine start point to optimize
       ++seed;
-//      Log.d("BEE", String.valueOf(seed));
+      // Log.d("BEE", String.valueOf(seed));
       int startIndex = new Random(seed).nextInt(this.path.size()/3);
       int endIndex = 0;
       Point start = this.path.get(startIndex);
@@ -293,36 +334,52 @@ public class BeeColony {
 
       // copy pre-chain
       List<Point> newPath = new ArrayList<>();
-      for(int i = 0; i <= startIndex; i++)
+      for(int i = 0; i < startIndex; i++)
         newPath.add(this.path.get(i));
 
-      // build optimized chain
-      Point next = Food.getNextOnLine(start);
-//      Log.d("BEE", "Opt: Line ID: " + start.getIdLine());
-      while (next != null) {
-//        Log.d("BEE", "Following: Line ID: " + next.getIdLine());
-        if (this.path.contains(next)) break;
-        if (newPath.contains(next)) {
-          Log.d("BEE", "Opt loop detected.");
-          return false; // contains loop
+
+      if (false) {
+        // build optimized chain
+        Point next = Food.getNextOnLine(start);
+        // Log.d("BEE", "Opt: Line ID: " + start.getIdLine());
+        while (next != null) {
+          // Log.d("BEE", "Following: Line ID: " + next.getIdLine());
+          if (this.path.contains(next)) break;
+          if (newPath.contains(next)) {
+            Log.d("BEE", "Opt loop detected.");
+            return false; // contains loop
+          }
+          newPath.add(next);
+          next = Food.getNextOnLine(next);
         }
-        newPath.add(next);
-        next = Food.getNextOnLine(next);
+
+        for(int i = 0; i < this.path.size(); i++) {
+          if (this.path.get(i) == next) {
+            endIndex = i;
+          }
+        }
+        if (endIndex == 0) {
+          newPath.clear();
+          return false;
+        }
+
+        // copy post-chain
+        for(int i = endIndex; i < this.path.size(); i++)
+          newPath.add(this.path.get(i));
+      }
+      else {
+        int limit = this.path.size() - startIndex;
+        List<Point> subPath = Food.scout(start, this.path.get(this.path.size()-1), limit);
+        if (subPath != null) {
+          Log.d("BEE", "New Optimized Path Found!" + subPath.size() + "/" + limit);
+          for(int i = 1; i < subPath.size(); i++)
+            newPath.add(subPath.get(i));
+        } else {
+          Log.e("BEE", "No optimized path!");
+          return false;
+        }
       }
 
-      for(int i = 0; i < this.path.size(); i++) {
-        if (this.path.get(i) == next) {
-          endIndex = i;
-        }
-      }
-      if (endIndex == 0) {
-        newPath.clear();
-        return false;
-      }
-
-      // copy post-chain
-      for(int i = endIndex; i < this.path.size(); i++)
-        newPath.add(this.path.get(i));
 
       // better cost?
       if (Food.getCost(newPath) < Food.getCost(this.path)) {

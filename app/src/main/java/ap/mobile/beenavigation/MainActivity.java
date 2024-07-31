@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import ap.mobile.beenavigation.base.Graph;
@@ -99,10 +100,12 @@ public class MainActivity extends AppCompatActivity
   }
 
   public void createDir() {
-    File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
     try {
+      File file = new File(Environment.getExternalStorageDirectory(), "dijkstra-test.csv");
       file.createNewFile();
       file = new File(Environment.getExternalStorageDirectory(), "bee-test.csv");
+      file.createNewFile();
+      file = new File(Environment.getExternalStorageDirectory(), "convergence.csv");
       file.createNewFile();
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -123,10 +126,10 @@ public class MainActivity extends AppCompatActivity
       return true;
     }
     if (item.getItemId() == R.id.action_bee) {
-//      pairs.add(new Pair("SN", -7.9407324572775915, 112.6097097247839, -7.955395359710581, 112.61473517864943));
+      pairs.add(new Pair("SN", -7.9407324572775915, 112.6097097247839, -7.955395359710581, 112.61473517864943));
       pairs.add(new Pair("SM", -7.973144015452409, 112.62706462293863, -7.974988466149719, 112.63451311737299));
-//      pairs.add(new Pair("LN", -7.931323391709715, 112.6036999002099, -8.020481172146864, 112.62394990772009));
-//      pairs.add(new Pair("LM", -7.9414785984133935, 112.65198200941086, -8.023316412726935, 112.62254241853952));
+      pairs.add(new Pair("LN", -7.931323391709715, 112.6036999002099, -8.020481172146864, 112.62394990772009));
+      pairs.add(new Pair("LM", -7.9414785984133935, 112.65198200941086, -8.023316412726935, 112.62254241853952));
       // Bee Colony Algorithm
       try {
         Pair p = this.pairs.poll();
@@ -139,27 +142,47 @@ public class MainActivity extends AppCompatActivity
           MapStatic.endPointMarker = MapCDM.drawInterchangeMarker(this.gMap, end, R.drawable.ic_circle);
           List<Line> lines = new ArrayList<>(this.lines.values());
           for (Polyline polyline : MapStatic.solutionPolylines) polyline.remove();
-          for (int i = 0; i < 5; i++) {
+          for (int i = 0; i < 100; i++) {
             String type = p.type;
             // Thread t = new Thread(() -> {
             Graph g = MainActivity.buildGraph(start, end, lines, this.interchanges);
             Graph.GraphPoint startPoint = g.getStartPoint();
             Graph.GraphPoint endPoint = g.getEndPoint();
             BeeColony beeColony = new BeeColony(g, startPoint, endPoint);
-            double timea = System.nanoTime();
+            // double timea = System.nanoTime();
             List<LatLng> path = beeColony.run(10);
-            double timeb = (System.nanoTime() - timea) / 1000000;
+            // double timeb = (System.nanoTime() - timea) / 1000000;
             try {
-              File file = new File(Environment.getExternalStorageDirectory(), "bee-test.csv");
+              // File file = new File(Environment.getExternalStorageDirectory(), "bee-test.csv");
+              // if (file.exists()) {
+              //   FileOutputStream fos = new FileOutputStream(file, true);
+              //   String data = type + ";";
+              //   data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
+              //   data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
+              //   data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
+              //   data += beeColony.getCycle() + ";" + beeColony.getCost() + ";\n";
+              //   fos.write(data.getBytes());
+              //   fos.close();
+              // }
+              File file = new File(Environment.getExternalStorageDirectory(), "convergence.csv");
               if (file.exists()) {
-                FileOutputStream fos = new FileOutputStream(file, true);
-                String data = type + ";";
-                data += "SID" + startPoint.getIdLine() + ";" + startPoint.getLat() + ";" + startPoint.getLng() + ";";
-                data += "EID" + endPoint.getIdLine() + ";" + endPoint.getLat() + ";" + endPoint.getLng() + ";";
-                data += timeb + ";" + Helper.calculateDistance(startPoint, endPoint) + ";";
-                data += beeColony.getCost() + ";\n";
-                fos.write(data.getBytes());
-                fos.close();
+                Map<Integer, Double> convergenceMetric = beeColony.getConvergenceMetric();
+
+                // data += "SID" + startPoint.getIdLine() + ";"; // + startPoint.getLat() + ";" + startPoint.getLng() + ";";
+                // data += "EID" + endPoint.getIdLine() + ";";// + endPoint.getLat() + ";" + endPoint.getLng() + ";";
+                // Log.e("BEE", "Size:" + convergenceMetric.size());
+                convergenceMetric.forEach((key, value) -> {
+                  // Log.d("BEE", key +"/"+value);
+                  String data = "";
+                  data += "Heuristic," + type + "," + key + "," + value + "\n";
+                  try {
+                    FileOutputStream fos = new FileOutputStream(file, true);
+                    fos.write(data.getBytes());
+                    fos.close();
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                });
               }
             } catch (Exception e) {
             }

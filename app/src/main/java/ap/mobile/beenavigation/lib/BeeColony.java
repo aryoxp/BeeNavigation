@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class BeeColony {
   private final Queue<Food> foods = new LinkedList<>();
   private List<Bee> colony = new LinkedList<>();
   private static int seed = 0;
+  private int cycle = 0;
 
   private static final int cycleLimit = 50;
   private static final int forageLimit = 5;
@@ -32,6 +34,7 @@ public class BeeColony {
   private static final float percentForager = .5f;
   private static final float percentOnlooker = .5f;
   private Food bestFood;
+  private static Map<Integer, Double> convergenceMetric = new HashMap<>();
 
   public BeeColony(Graph g, GraphPoint start, GraphPoint end) {
     this.g = g;
@@ -56,6 +59,7 @@ public class BeeColony {
     int cycle = 0;
     int convergence = 0;
     double bestCost = Double.MAX_VALUE;
+    BeeColony.convergenceMetric.clear();
     while(cycle < BeeColony.cycleLimit && convergence < BeeColony.convergence) {
 
       // Employed Bee Phase
@@ -101,6 +105,9 @@ public class BeeColony {
       else convergence++;
       Log.d("BEE", "Convergence: " + convergence);
       cycle++;
+      this.cycle = cycle;
+      Log.e("BEE", cycle +"/"+bestCost);
+      BeeColony.convergenceMetric.put(cycle, bestCost);
     }
     return null;
   }
@@ -141,6 +148,10 @@ public class BeeColony {
   public double getCost() {
     return Food.getCost(this.bestFood.path);
   }
+  public int getCycle() {
+    return this.cycle;
+  }
+  public Map<Integer, Double> getConvergenceMetric() { return BeeColony.convergenceMetric; }
 
   private void init(int numBee) {
     this.colony = new LinkedList<>();
@@ -338,7 +349,7 @@ public class BeeColony {
         newPath.add(this.path.get(i));
 
 
-      if (false) {
+      if (true) {
         // build optimized chain
         Point next = Food.getNextOnLine(start);
         // Log.d("BEE", "Opt: Line ID: " + start.getIdLine());
@@ -366,8 +377,7 @@ public class BeeColony {
         // copy post-chain
         for(int i = endIndex; i < this.path.size(); i++)
           newPath.add(this.path.get(i));
-      }
-      else {
+      } else {
         int limit = this.path.size() - startIndex;
         List<Point> subPath = Food.scout(start, this.path.get(this.path.size()-1), limit);
         if (subPath != null) {
